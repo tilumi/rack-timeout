@@ -24,6 +24,14 @@ module Rack
       include ExceptionWithEnv
     end
 
+    def self.logger
+      @@logger ||= defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
+    end
+
+    def self.logger=(logger)
+      @@logger = logger
+    end
+
     RequestDetails = Struct.new(
       :id,        # a unique identifier for the request. informative-only.
       :wait,      # seconds the request spent in the web server before being serviced by rack
@@ -91,8 +99,8 @@ module Rack
     def call(env)
       path = env[PATH_INFO_KEY]
       to_skip = false
-      puts "path: #{path}"
-      puts "paths_to_skip: #{@paths_to_skip}"
+      Timeout.logger.debug "path: #{path}"
+      Timeout.logger.debug "paths_to_skip: #{@paths_to_skip}"
       unless path.nil?
         for path_to_skip in @paths_to_skip
           if path_to_skip =~ path
@@ -100,9 +108,14 @@ module Rack
           end
         end
       end
-      puts "to_skip: #{to_skip}"
+      Timeout.logger.debug "to_skip: #{to_skip}"
       if to_skip
-        @app.call(env)
+        begin
+          @app.call(env)
+        ensure
+          register_state_change.call :completed
+        end
+      end
       else
         info      = (env[ENV_INFO_KEY] ||= RequestDetails.new)
         info.id ||= env[HTTP_X_REQUEST_ID] || env[ACTION_DISPATCH_REQUEST_ID] || SecureRandom.uuid
