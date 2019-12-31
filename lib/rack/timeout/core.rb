@@ -110,11 +110,7 @@ module Rack
       end
       Timeout.logger.debug "to_skip: #{to_skip}"
       if to_skip
-        begin
-          @app.call(env)
-        ensure
-          register_state_change.call :completed
-        end
+        @app.call(env)
       else
         info      = (env[ENV_INFO_KEY] ||= RequestDetails.new)
         info.id ||= env[HTTP_X_REQUEST_ID] || env[ACTION_DISPATCH_REQUEST_ID] || SecureRandom.uuid
