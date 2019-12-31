@@ -91,6 +91,8 @@ module Rack
     def call(env)
       path = env[PATH_INFO_KEY]
       to_skip = false
+      puts "path: #{path}"
+      puts "paths_to_skip: #{@paths_to_skip}"
       unless path.nil?
         for path_to_skip in @paths_to_skip
           if path_to_skip =~ path
@@ -98,6 +100,7 @@ module Rack
           end
         end
       end
+      puts "to_skip: #{to_skip}"
       if to_skip
         @app.call(env)
       else
