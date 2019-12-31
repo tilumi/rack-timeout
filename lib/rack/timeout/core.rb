@@ -115,7 +115,6 @@ module Rack
         ensure
           register_state_change.call :completed
         end
-      end
       else
         info      = (env[ENV_INFO_KEY] ||= RequestDetails.new)
         info.id ||= env[HTTP_X_REQUEST_ID] || env[ACTION_DISPATCH_REQUEST_ID] || SecureRandom.uuid
